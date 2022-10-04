@@ -1,0 +1,41 @@
+version: '3.3'
+
+services:
+    app:
+        build: ./docker/php
+        container_name: test_app
+        volumes:
+            - ./:/var/www/html
+            - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+        networks:
+            - test-network
+    nginx:
+        container_name: test_nginx
+        image: nginx:stable-alpine
+        ports:
+            - "8084:80"
+        volumes:
+           - ./:/var/www/html
+           - ./docker/nginx:/etc/nginx/conf.d
+        networks:
+            - test-network
+
+    mysql:
+        image: mysql
+        container_name: test-db
+        restart: unless-stopped
+        tty: true
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_USERNAME: ${DB_USERNAME}
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        volumes:
+            - ./docker/mysql/db:/var/lib/mysql
+        networks:
+            - test-network
+
+networks:
+    test-network:
+        driver: bridge
